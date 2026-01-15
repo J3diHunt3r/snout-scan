@@ -1,24 +1,11 @@
-# Minimal requirements for deployment - core functionality only
-# Add ML/image processing packages later if needed
+# Minimal requirements for deployment - absolute minimum
+# These packages all have pre-built wheels and should install quickly
 
-# Core Flask and web
 flask==3.0.0
 flask-cors==4.0.0
 gunicorn==21.2.0
 requests==2.31.0
 python-dotenv==1.0.0
-
-# Firebase Admin (core only)
 firebase-admin==6.2.0
-
-# Stripe
 stripe==7.0.0
-
-# Basic image processing
 Pillow==10.1.0
-
-# Note: Temporarily removed these to avoid build issues:
-# - google-cloud-firestore (may be redundant with firebase-admin)
-# - google-cloud-storage (can use firebase-admin storage)
-# - google-auth (included in firebase-admin)
-# - numpy, opencv-python (will break some features but allows deployment)
