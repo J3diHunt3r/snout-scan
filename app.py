@@ -2435,542 +2435,543 @@ def process_image(file_path):
         return None
 
 
-@app.route('/scanFace', methods=['POST'])
-def scan_face():
-    try:
-        if 'file' not in request.files:
-            return jsonify({"message": "No file part"}), 400
-
-        uploaded_file = request.files['file']
-        if uploaded_file.filename == '':
-            return jsonify({"message": "No selected file"}), 400
-
-        file_path = os.path.join('uploads', 'scan.jpg')
-        uploaded_file.save(file_path)
-
-        # Process image
-        image_rgb = process_image(file_path)
-        if image_rgb is None:
-            return jsonify({"message": "Error processing the image"}), 500
-
-        # Extract features with enhanced preprocessing and SIFT
-        animal_data = detect_animals_and_extract_features(image_rgb)
-        
-        # If no animals detected and YOLOv5 is not available, try fallback detection
-        if not animal_data and model is None:
-            print("YOLOv5 model not available, trying fallback detection...")
-            animal_data = detect_animals_fallback(image_rgb)
-        
-        if not animal_data:
-            return jsonify({"message": "No animal muzzle detected"}), 400
-
-        return jsonify({
-            "message": "Animal features extracted successfully",
-            "animals_detected": len(animal_data),
-            "animal_data": animal_data
-        }), 200
-
-    except Exception as e:
-        return jsonify({"message": f"Error: {e}"}), 500
-
-
-@app.route('/storeSnout', methods=['POST'])
-def store_snout():
-    try:
-        print("=== /storeSnout endpoint called ===")
-        
-        if 'file' not in request.files:
-            return jsonify({"message": "No file part"}), 400
-
-        uploaded_file = request.files['file']
-        if uploaded_file.filename == '':
-            return jsonify({"message": "No selected file"}), 400
-
-        # Get additional pet info
-        pet_name = request.form.get('pet_name', 'Unknown')
-        pet_breed = request.form.get('pet_breed', 'Unknown')
-        owner_name = request.form.get('owner_name', 'Unknown')
-
-        print(f"Storing pet: {pet_name}, breed: {pet_breed}, owner: {owner_name}")
-
-        snout_id = str(uuid.uuid4())
-        file_path = os.path.join('snout_data', f'{snout_id}.jpg')
-        uploaded_file.save(file_path)
-        
-        print(f"File saved with snout_id: {snout_id}")
-
-        # Process image
-        image_rgb = process_image(file_path)
-        if image_rgb is None:
-            return jsonify({"message": "Error processing the image"}), 500
-
-        print(f"Image processed successfully, shape: {image_rgb.shape}")
-
-        # Extract features
-        animal_data = detect_animals_and_extract_features(image_rgb)
-        if not animal_data:
-            return jsonify({"message": "No animal muzzle detected"}), 400
-
-        print(f"Features extracted for {len(animal_data)} animals")
-
-        # Debug: Check DogFaceNet preservation after extraction
-        debug_dogfacenet_preservation(animal_data, "after_extraction")
-
-        # Store in Firebase if available
-        storage_success = False
-        if db is not None:
-            print("Database available, attempting safe array storage...")
-            storage_success = store_pet_with_safe_arrays(
-                db, snout_id, pet_name, pet_breed, owner_name, animal_data, file_path
-            )
-        else:
-            print("Database not available")
-
-        # Prepare response
-        response_data = {
-            "message": "Pet muzzle data processed successfully",
-            "snout_id": snout_id,
-            "pet_name": pet_name,
-            "animals_detected": len(animal_data),
-            "storage_success": storage_success,
-            "storage_format": "safe_arrays",
-            "muzzle_data": animal_data  # Include the actual muzzle features
-        }
-        
-        # Only include debugging info if storage failed
-        if not storage_success:
-            response_data["note"] = "Storage failed - check server logs for details"
-            response_data["debug_info"] = {
-                "animals_detected": len(animal_data),
-                "has_muzzle_features": bool(animal_data[0].get('muzzle_features')) if animal_data else False,
-                "database_available": db is not None
-            }
-
-        return jsonify(response_data), 200
-
-    except Exception as e:
-        print(f"Error in store_snout: {e}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({"message": f"Error: {e}"}), 500
+# PET ROUTES COMMENTED OUT - Keeping only Stripe billing functionality for now
+# @app.route('/scanFace', methods=['POST'])
+# def scan_face():
+#     try:
+#         if 'file' not in request.files:
+#             return jsonify({"message": "No file part"}), 400
+#
+#         uploaded_file = request.files['file']
+#         if uploaded_file.filename == '':
+#             return jsonify({"message": "No selected file"}), 400
+#
+#         file_path = os.path.join('uploads', 'scan.jpg')
+#         uploaded_file.save(file_path)
+#
+#         # Process image
+#         image_rgb = process_image(file_path)
+#         if image_rgb is None:
+#             return jsonify({"message": "Error processing the image"}), 500
+#
+#         # Extract features with enhanced preprocessing and SIFT
+#         animal_data = detect_animals_and_extract_features(image_rgb)
+#         
+#         # If no animals detected and YOLOv5 is not available, try fallback detection
+#         if not animal_data and model is None:
+#             print("YOLOv5 model not available, trying fallback detection...")
+#             animal_data = detect_animals_fallback(image_rgb)
+#         
+#         if not animal_data:
+#             return jsonify({"message": "No animal muzzle detected"}), 400
+#
+#         return jsonify({
+#             "message": "Animal features extracted successfully",
+#             "animals_detected": len(animal_data),
+#             "animal_data": animal_data
+#         }), 200
+#
+#     except Exception as e:
+#         return jsonify({"message": f"Error: {e}"}), 500
 
 
-@app.route('/identifyPet', methods=['POST'])
-def identify_pet():
-    try:
-        print("\n" + "="*80)
-        print("🔍 /identifyPet endpoint called")
-        print("="*80)
+# # @app.route('/storeSnout', methods=['POST'])
+# def store_snout():
+# #     try:
+# #         print("=== /storeSnout endpoint called ===")
+#         
+# #         if 'file' not in request.files:
+# #             return jsonify({"message": "No file part"}), 400
+# 
+# #         uploaded_file = request.files['file']
+# #         if uploaded_file.filename == '':
+# #             return jsonify({"message": "No selected file"}), 400
+# 
+#         # Get additional pet info
+# #         pet_name = request.form.get('pet_name', 'Unknown')
+# #         pet_breed = request.form.get('pet_breed', 'Unknown')
+# #         owner_name = request.form.get('owner_name', 'Unknown')
+# 
+# #         print(f"Storing pet: {pet_name}, breed: {pet_breed}, owner: {owner_name}")
+# 
+# #         snout_id = str(uuid.uuid4())
+# #         file_path = os.path.join('snout_data', f'{snout_id}.jpg')
+# #         uploaded_file.save(file_path)
+#         
+# #         print(f"File saved with snout_id: {snout_id}")
+# 
+#         # Process image
+# #         image_rgb = process_image(file_path)
+# #         if image_rgb is None:
+# #             return jsonify({"message": "Error processing the image"}), 500
+# 
+# #         print(f"Image processed successfully, shape: {image_rgb.shape}")
+# 
+#         # Extract features
+# #         animal_data = detect_animals_and_extract_features(image_rgb)
+# #         if not animal_data:
+# #             return jsonify({"message": "No animal muzzle detected"}), 400
+# 
+# #         print(f"Features extracted for {len(animal_data)} animals")
+# 
+#         # Debug: Check DogFaceNet preservation after extraction
+# #         debug_dogfacenet_preservation(animal_data, "after_extraction")
+# 
+#         # Store in Firebase if available
+# #         storage_success = False
+# #         if db is not None:
+# #             print("Database available, attempting safe array storage...")
+# #             storage_success = store_pet_with_safe_arrays(
+# #                 db, snout_id, pet_name, pet_breed, owner_name, animal_data, file_path
+# #             )
+# #         else:
+# #             print("Database not available")
+# 
+#         # Prepare response
+# #         response_data = {
+# #             "message": "Pet muzzle data processed successfully",
+# #             "snout_id": snout_id,
+# #             "pet_name": pet_name,
+# #             "animals_detected": len(animal_data),
+# #             "storage_success": storage_success,
+# #             "storage_format": "safe_arrays",
+# #             "muzzle_data": animal_data  # Include the actual muzzle features
+# #         }
+#         
+#         # Only include debugging info if storage failed
+# #         if not storage_success:
+# #             response_data["note"] = "Storage failed - check server logs for details"
+# #             response_data["debug_info"] = {
+# #                 "animals_detected": len(animal_data),
+# #                 "has_muzzle_features": bool(animal_data[0].get('muzzle_features')) if animal_data else False,
+# #                 "database_available": db is not None
+# #             }
+# 
+# #         return jsonify(response_data), 200
+# 
+# #     except Exception as e:
+# #         print(f"Error in store_snout: {e}")
+# #         import traceback
+# #         traceback.print_exc()
+# #         return jsonify({"message": f"Error: {e}"}), 500
+
+
+# @app.route('/identifyPet', methods=['POST'])
+# def identify_pet():
+#     try:
+#         print("\n" + "="*80)
+#         print("🔍 /identifyPet endpoint called")
+#         print("="*80)
         
         # Log all request data
-        print("\n📋 REQUEST DATA ANALYSIS:")
-        print("-" * 50)
-        print(f"Request method: {request.method}")
-        print(f"Request headers: {dict(request.headers)}")
-        print(f"Request form data: {dict(request.form)}")
-        print(f"Request files: {list(request.files.keys())}")
+#         print("\n📋 REQUEST DATA ANALYSIS:")
+#         print("-" * 50)
+#         print(f"Request method: {request.method}")
+#         print(f"Request headers: {dict(request.headers)}")
+#         print(f"Request form data: {dict(request.form)}")
+#         print(f"Request files: {list(request.files.keys())}")
         
         # Detailed form data analysis
-        if request.form:
-            print(f"\n📝 FORM DATA DETAILS:")
-            print("-" * 30)
-            for key, value in request.form.items():
-                print(f"   {key}: {value}")
-        else:
-            print(f"\n📝 No form data received")
+#         if request.form:
+#             print(f"\n📝 FORM DATA DETAILS:")
+#             print("-" * 30)
+#             for key, value in request.form.items():
+#                 print(f"   {key}: {value}")
+#         else:
+#             print(f"\n📝 No form data received")
         
         # Detailed file analysis
-        if request.files:
-            print(f"\n📁 FILE DATA DETAILS:")
-            print("-" * 30)
-            for key, file in request.files.items():
-                print(f"   File key: {key}")
-                print(f"   Filename: {file.filename}")
-                print(f"   Content type: {file.content_type}")
-                if hasattr(file, 'content_length'):
-                    print(f"   Content length: {file.content_length}")
-                else:
-                    print(f"   Content length: Unknown")
-        else:
-            print(f"\n📁 No files received")
+#         if request.files:
+#             print(f"\n📁 FILE DATA DETAILS:")
+#             print("-" * 30)
+#             for key, file in request.files.items():
+#                 print(f"   File key: {key}")
+#                 print(f"   Filename: {file.filename}")
+#                 print(f"   Content type: {file.content_type}")
+#                 if hasattr(file, 'content_length'):
+#                     print(f"   Content length: {file.content_length}")
+#                 else:
+#                     print(f"   Content length: Unknown")
+#         else:
+#             print(f"\n📁 No files received")
         
-        if 'file' not in request.files:
-            print("❌ No file part in request")
-            return jsonify({"message": "No file part"}), 400
+#         if 'file' not in request.files:
+#             print("❌ No file part in request")
+#             return jsonify({"message": "No file part"}), 400
 
-        uploaded_file = request.files['file']
-        if uploaded_file.filename == '':
-            print("❌ No selected file")
-            return jsonify({"message": "No selected file"}), 400
+#         uploaded_file = request.files['file']
+#         if uploaded_file.filename == '':
+#             print("❌ No selected file")
+#             return jsonify({"message": "No selected file"}), 400
 
-        print(f"\n📁 FILE DETAILS:")
-        print("-" * 30)
-        print(f"Filename: {uploaded_file.filename}")
-        print(f"Content type: {uploaded_file.content_type}")
-        print(f"Content length: {uploaded_file.content_length if hasattr(uploaded_file, 'content_length') else 'Unknown'}")
+#         print(f"\n📁 FILE DETAILS:")
+#         print("-" * 30)
+#         print(f"Filename: {uploaded_file.filename}")
+#         print(f"Content type: {uploaded_file.content_type}")
+#         print(f"Content length: {uploaded_file.content_length if hasattr(uploaded_file, 'content_length') else 'Unknown'}")
         
-        file_path = os.path.join('uploads', 'identify.jpg')
-        uploaded_file.save(file_path)
-        print(f"File saved to: {file_path}")
-        print(f"Saved file size: {os.path.getsize(file_path)} bytes")
+#         file_path = os.path.join('uploads', 'identify.jpg')
+#         uploaded_file.save(file_path)
+#         print(f"File saved to: {file_path}")
+#         print(f"Saved file size: {os.path.getsize(file_path)} bytes")
 
         # Process image
-        print("\n🖼️ IMAGE PROCESSING:")
-        print("-" * 30)
-        print("Starting image processing...")
-        image_rgb = process_image(file_path)
-        if image_rgb is None:
-            print("❌ Image processing failed")
-            return jsonify({"message": "Error processing the image"}), 500
+#         print("\n🖼️ IMAGE PROCESSING:")
+#         print("-" * 30)
+#         print("Starting image processing...")
+#         image_rgb = process_image(file_path)
+#         if image_rgb is None:
+#             print("❌ Image processing failed")
+#             return jsonify({"message": "Error processing the image"}), 500
 
-        print(f"✅ Image processing successful")
-        print(f"   Image shape: {image_rgb.shape}")
-        print(f"   Image dtype: {image_rgb.dtype}")
-        print(f"   Image range: [{image_rgb.min():.2f}, {image_rgb.max():.2f}]")
+#         print(f"✅ Image processing successful")
+#         print(f"   Image shape: {image_rgb.shape}")
+#         print(f"   Image dtype: {image_rgb.dtype}")
+#         print(f"   Image range: [{image_rgb.min():.2f}, {image_rgb.max():.2f}]")
 
         # Extract features from query image with enhanced preprocessing and SIFT
-        print("\n🔍 FEATURE EXTRACTION:")
-        print("-" * 30)
-        print("Starting animal detection and feature extraction...")
-        raw_query_animal_data = detect_animals_and_extract_features(image_rgb)
-        if not raw_query_animal_data:
-            print("❌ No animals detected")
-            return jsonify({"message": "No animal muzzle detected"}), 400
+#         print("\n🔍 FEATURE EXTRACTION:")
+#         print("-" * 30)
+#         print("Starting animal detection and feature extraction...")
+#         raw_query_animal_data = detect_animals_and_extract_features(image_rgb)
+#         if not raw_query_animal_data:
+#             print("❌ No animals detected")
+#             return jsonify({"message": "No animal muzzle detected"}), 400
 
-        print(f"✅ Raw features extracted for {len(raw_query_animal_data)} animals")
+#         print(f"✅ Raw features extracted for {len(raw_query_animal_data)} animals")
         
         # Convert to the same format used in database storage
-        print("\n🔄 CONVERTING TO DATABASE FORMAT:")
-        print("-" * 40)
-        print("Converting features to match stored format...")
+#         print("\n🔄 CONVERTING TO DATABASE FORMAT:")
+#         print("-" * 40)
+#         print("Converting features to match stored format...")
         
         # Debug: Show original format
-        print(f"Original features structure:")
-        for i, animal in enumerate(raw_query_animal_data):
-            if 'muzzle_features' in animal:
-                mf = animal['muzzle_features']
-                print(f"  Animal {i+1}: {list(mf.keys())}")
-                if 'sift_features' in mf and mf['sift_features']:
-                    sf = mf['sift_features']
-                    if 'descriptors' in sf:
-                        desc = sf['descriptors']
-                        print(f"    SIFT descriptors: {len(desc)} descriptors")
-                        if len(desc) > 0:
-                            print(f"    First descriptor length: {len(desc[0])}")
+#         print(f"Original features structure:")
+#         for i, animal in enumerate(raw_query_animal_data):
+#             if 'muzzle_features' in animal:
+#                 mf = animal['muzzle_features']
+#                 print(f"  Animal {i+1}: {list(mf.keys())}")
+#                 if 'sift_features' in mf and mf['sift_features']:
+#                     sf = mf['sift_features']
+#                     if 'descriptors' in sf:
+#                         desc = sf['descriptors']
+#                         print(f"    SIFT descriptors: {len(desc)} descriptors")
+#                         if len(desc) > 0:
+#                             print(f"    First descriptor length: {len(desc[0])}")
         
-        query_animal_data = create_firestore_safe_features(raw_query_animal_data)
+#         query_animal_data = create_firestore_safe_features(raw_query_animal_data)
         
-        if not query_animal_data:
-            print("❌ Failed to convert features to database format")
-            return jsonify({"message": "Failed to process features"}), 500
+#         if not query_animal_data:
+#             print("❌ Failed to convert features to database format")
+#             return jsonify({"message": "Failed to process features"}), 500
         
         # Debug: Check DogFaceNet preservation after safe conversion
-        debug_dogfacenet_preservation(query_animal_data, "after_safe_conversion")
+#         debug_dogfacenet_preservation(query_animal_data, "after_safe_conversion")
         
         # Debug: Show converted format
-        print(f"\nConverted features structure:")
-        for i, animal in enumerate(query_animal_data):
-            if 'muzzle_features' in animal:
-                mf = animal['muzzle_features']
-                print(f"  Animal {i+1}: {list(mf.keys())}")
-                if 'sift_features' in mf and mf['sift_features']:
-                    sf = mf['sift_features']
-                    if 'descriptors_flat' in sf:
-                        flat_desc = sf['descriptors_flat']
-                        print(f"    Flattened SIFT: {len(flat_desc)} values")
-                        print(f"    Descriptor count: {sf.get('descriptor_count', 'N/A')}")
-                        print(f"    Descriptor length: {sf.get('descriptor_length', 'N/A')}")
+#         print(f"\nConverted features structure:")
+#         for i, animal in enumerate(query_animal_data):
+#             if 'muzzle_features' in animal:
+#                 mf = animal['muzzle_features']
+#                 print(f"  Animal {i+1}: {list(mf.keys())}")
+#                 if 'sift_features' in mf and mf['sift_features']:
+#                     sf = mf['sift_features']
+#                     if 'descriptors_flat' in sf:
+#                         flat_desc = sf['descriptors_flat']
+#                         print(f"    Flattened SIFT: {len(flat_desc)} values")
+#                         print(f"    Descriptor count: {sf.get('descriptor_count', 'N/A')}")
+#                         print(f"    Descriptor length: {sf.get('descriptor_length', 'N/A')}")
 
-        print(f"✅ Animals detected: {len(query_animal_data)}")
+#         print(f"✅ Animals detected: {len(query_animal_data)}")
         
         # Debug: Show what we detected
-        print("\n📊 EXTRACTED FEATURES ANALYSIS:")
-        print("-" * 40)
-        for i, animal in enumerate(query_animal_data):
-            print(f"\n🐾 Query Animal {i+1}:")
-            print(f"   Animal type: {animal['animal_type']}")
-            print(f"   Confidence: {animal['confidence']:.3f}")
-            print(f"   Bounding box: {animal.get('bounding_box', 'N/A')}")
-            print(f"   Center point: {animal.get('center_point', 'N/A')}")
+#         print("\n📊 EXTRACTED FEATURES ANALYSIS:")
+#         print("-" * 40)
+#         for i, animal in enumerate(query_animal_data):
+#             print(f"\n🐾 Query Animal {i+1}:")
+#             print(f"   Animal type: {animal['animal_type']}")
+#             print(f"   Confidence: {animal['confidence']:.3f}")
+#             print(f"   Bounding box: {animal.get('bounding_box', 'N/A')}")
+#             print(f"   Center point: {animal.get('center_point', 'N/A')}")
             
-            if 'muzzle_features' in animal:
-                muzzle_features = animal['muzzle_features']
-                print(f"   ✅ Has muzzle features")
-                print(f"   Feature keys: {list(muzzle_features.keys())}")
+#             if 'muzzle_features' in animal:
+#                 muzzle_features = animal['muzzle_features']
+#                 print(f"   ✅ Has muzzle features")
+#                 print(f"   Feature keys: {list(muzzle_features.keys())}")
                 
                 # Log traditional features details
-                if 'traditional_features' in muzzle_features:
-                    trad_features = muzzle_features['traditional_features']
-                    if 'features' in trad_features:
-                        features = trad_features['features']
-                        print(f"   Traditional features: {len(features)} values")
-                        print(f"   Feature range: [{min(features):.4f}, {max(features):.4f}]")
-                        print(f"   First 5 values: {features[:5]}")
-                        print(f"   Last 5 values: {features[-5:]}")
+#                 if 'traditional_features' in muzzle_features:
+#                     trad_features = muzzle_features['traditional_features']
+#                     if 'features' in trad_features:
+#                         features = trad_features['features']
+#                         print(f"   Traditional features: {len(features)} values")
+#                         print(f"   Feature range: [{min(features):.4f}, {max(features):.4f}]")
+#                         print(f"   First 5 values: {features[:5]}")
+#                         print(f"   Last 5 values: {features[-5:]}")
                 
                 # Log SIFT features details
-                if 'sift_features' in muzzle_features:
-                    sift_features = muzzle_features['sift_features']
-                    print(f"   SIFT features: {len(sift_features)} keypoints")
+#                 if 'sift_features' in muzzle_features:
+#                     sift_features = muzzle_features['sift_features']
+#                     print(f"   SIFT features: {len(sift_features)} keypoints")
                     
                     # Check if we have flattened descriptors (converted format)
-                    if 'descriptors_flat' in sift_features:
-                        flat_desc = sift_features['descriptors_flat']
-                        print(f"   ✅ Flattened descriptors: {len(flat_desc)} values")
-                        print(f"   Descriptor count: {sift_features.get('descriptor_count', 'N/A')}")
-                        print(f"   Descriptor length: {sift_features.get('descriptor_length', 'N/A')}")
-                    elif 'descriptors' in sift_features:
-                        descriptors = sift_features['descriptors']
-                        if hasattr(descriptors, 'shape'):
-                            print(f"   Descriptors shape: {descriptors.shape}")
-                        else:
-                            print(f"   Descriptors type: {type(descriptors)}")
-                            print(f"   Descriptors length: {len(descriptors) if hasattr(descriptors, '__len__') else 'N/A'}")
-            else:
-                print(f"   ❌ No muzzle features found")
+#                     if 'descriptors_flat' in sift_features:
+#                         flat_desc = sift_features['descriptors_flat']
+#                         print(f"   ✅ Flattened descriptors: {len(flat_desc)} values")
+#                         print(f"   Descriptor count: {sift_features.get('descriptor_count', 'N/A')}")
+#                         print(f"   Descriptor length: {sift_features.get('descriptor_length', 'N/A')}")
+#                     elif 'descriptors' in sift_features:
+#                         descriptors = sift_features['descriptors']
+#                         if hasattr(descriptors, 'shape'):
+#                             print(f"   Descriptors shape: {descriptors.shape}")
+#                         else:
+#                             print(f"   Descriptors type: {type(descriptors)}")
+#                             print(f"   Descriptors length: {len(descriptors) if hasattr(descriptors, '__len__') else 'N/A'}")
+#             else:
+#                 print(f"   ❌ No muzzle features found")
 
         # Compare with stored pets
-        print("\n🗄️ DATABASE SEARCH:")
-        print("-" * 30)
+#         print("\n🗄️ DATABASE SEARCH:")
+#         print("-" * 30)
         
-        if db is None:
-            print("❌ Database not available for comparison - returning detection results only")
+#         if db is None:
+#             print("❌ Database not available for comparison - returning detection results only")
             # Return successful detection without database comparison
-            return jsonify({
-                "message": "Pet detection completed successfully",
-                "query_animals_detected": len(query_animal_data),
-                "matches_found": 0,
-                "matches": [],
-                "note": "Database unavailable - showing detection results only"
-            }), 200
+#             return jsonify({
+#                 "message": "Pet detection completed successfully",
+#                 "query_animals_detected": len(query_animal_data),
+#                 "matches_found": 0,
+#                 "matches": [],
+#                 "note": "Database unavailable - showing detection results only"
+#             }), 200
 
-        print("✅ Database available, searching for matches...")
-        matches = []
-        try:
+#         print("✅ Database available, searching for matches...")
+#         matches = []
+#         try:
             # Look in the correct collection where Flutter stores pets
-            print(f"🔍 Searching in collection: 'my_pets'")
-            pets_ref = db.collection('my_pets')
-            stored_pets = pets_ref.stream()
+#             print(f"🔍 Searching in collection: 'my_pets'")
+#             pets_ref = db.collection('my_pets')
+#             stored_pets = pets_ref.stream()
             
-            pet_count = 0
-            print("\n📋 STORED PETS ANALYSIS:")
-            print("-" * 40)
+#             pet_count = 0
+#             print("\n📋 STORED PETS ANALYSIS:")
+#             print("-" * 40)
             
-            for stored_pet_doc in stored_pets:
-                pet_count += 1
-                stored_pet = stored_pet_doc.to_dict()
-                print(f"\n🐕 Pet {pet_count}: {stored_pet.get('name', 'Unknown')}")
-                print(f"   Pet ID: {stored_pet_doc.id}")
-                print(f"   Animal type: {stored_pet.get('animal_type', 'Not set')}")
-                print(f"   Breed: {stored_pet.get('breed', 'Unknown')}")
-                print(f"   Owner: {stored_pet.get('owner_name', stored_pet.get('owner', 'Unknown'))}")
+#             for stored_pet_doc in stored_pets:
+#                 pet_count += 1
+#                 stored_pet = stored_pet_doc.to_dict()
+#                 print(f"\n🐕 Pet {pet_count}: {stored_pet.get('name', 'Unknown')}")
+#                 print(f"   Pet ID: {stored_pet_doc.id}")
+#                 print(f"   Animal type: {stored_pet.get('animal_type', 'Not set')}")
+#                 print(f"   Breed: {stored_pet.get('breed', 'Unknown')}")
+#                 print(f"   Owner: {stored_pet.get('owner_name', stored_pet.get('owner', 'Unknown'))}")
                 
                 # Check muzzle features
-                stored_muzzle_features = stored_pet.get('muzzle_features', [])
-                print(f"   Muzzle features type: {type(stored_muzzle_features)}")
+#                 stored_muzzle_features = stored_pet.get('muzzle_features', [])
+#                 print(f"   Muzzle features type: {type(stored_muzzle_features)}")
                 
-                if isinstance(stored_muzzle_features, list):
-                    print(f"   Muzzle features count: {len(stored_muzzle_features)}")
-                    if len(stored_muzzle_features) > 0:
-                        first_feature = stored_muzzle_features[0]
-                        print(f"   First feature type: {type(first_feature)}")
-                        if isinstance(first_feature, dict):
-                            print(f"   First feature keys: {list(first_feature.keys())}")
-                            if 'muzzle_features' in first_feature:
-                                print(f"   ✅ Has nested muzzle_features")
-                            else:
-                                print(f"   ❌ No nested muzzle_features")
-                else:
-                    print(f"   Muzzle features: {stored_muzzle_features}")
+#                 if isinstance(stored_muzzle_features, list):
+#                     print(f"   Muzzle features count: {len(stored_muzzle_features)}")
+#                     if len(stored_muzzle_features) > 0:
+#                         first_feature = stored_muzzle_features[0]
+#                         print(f"   First feature type: {type(first_feature)}")
+#                         if isinstance(first_feature, dict):
+#                             print(f"   First feature keys: {list(first_feature.keys())}")
+#                             if 'muzzle_features' in first_feature:
+#                                 print(f"   ✅ Has nested muzzle_features")
+#                             else:
+#                                 print(f"   ❌ No nested muzzle_features")
+#                 else:
+#                     print(f"   Muzzle features: {stored_muzzle_features}")
                 
                 # Check if this pet has the right animal type for comparison
-                query_animal_types = [animal['animal_type'] for animal in query_animal_data]
-                stored_animal_type = stored_pet.get('animal_type', 'unknown')
-                print(f"   Query animal types: {query_animal_types}")
-                print(f"   Stored animal type: {stored_animal_type}")
-                print(f"   Type match: {'✅ YES' if stored_animal_type in query_animal_types else '❌ NO'}")
+#                 query_animal_types = [animal['animal_type'] for animal in query_animal_data]
+#                 stored_animal_type = stored_pet.get('animal_type', 'unknown')
+#                 print(f"   Query animal types: {query_animal_types}")
+#                 print(f"   Stored animal type: {stored_animal_type}")
+#                 print(f"   Type match: {'✅ YES' if stored_animal_type in query_animal_types else '❌ NO'}")
                 
                 # Handle the data structure for pets stored via Python backend
                 # Check if this pet has muzzle_data (Python backend) or muzzle_features (Flutter direct)
-                if 'muzzle_data' in stored_pet:
+#                 if 'muzzle_data' in stored_pet:
                     # Pet was stored via Python backend - use muzzle_data
-                    stored_muzzle_features = stored_pet.get('muzzle_data', [])
-                    print(f"   Using muzzle_data from Python backend")
-                else:
+#                     stored_muzzle_features = stored_pet.get('muzzle_data', [])
+#                     print(f"   Using muzzle_data from Python backend")
+#                 else:
                     # Pet was stored directly via Flutter - use muzzle_features
-                    stored_muzzle_features = stored_pet.get('muzzle_features', [])
-                    print(f"   Using muzzle_features from Flutter")
+#                     stored_muzzle_features = stored_pet.get('muzzle_features', [])
+#                     print(f"   Using muzzle_features from Flutter")
                 
                 # If it's a single animal (not a list), wrap it in a list
-                if not isinstance(stored_muzzle_features, list):
-                    stored_muzzle_features = [stored_muzzle_features]
+#                 if not isinstance(stored_muzzle_features, list):
+#                     stored_muzzle_features = [stored_muzzle_features]
                 
                 # Compare each detected animal with stored animals
-                print(f"\n   🔍 COMPARISON ANALYSIS:")
-                print(f"   " + "-" * 30)
+#                 print(f"\n   🔍 COMPARISON ANALYSIS:")
+#                 print(f"   " + "-" * 30)
                 
-                for query_animal in query_animal_data:
-                    print(f"\n   Query Animal: {query_animal['animal_type']} (confidence: {query_animal['confidence']:.3f})")
+#                 for query_animal in query_animal_data:
+#                     print(f"\n   Query Animal: {query_animal['animal_type']} (confidence: {query_animal['confidence']:.3f})")
                     
                     # Check if animal types are compatible for comparison
-                    query_type = query_animal['animal_type'].lower()
-                    stored_type = stored_pet.get('animal_type', 'unknown').lower()
+#                     query_type = query_animal['animal_type'].lower()
+#                     stored_type = stored_pet.get('animal_type', 'unknown').lower()
                     
                     # Flexible animal type matching - allow similar animals to be compared
-                    compatible_types = {
-                        'cat': ['cat', 'dog', 'pet', 'animal'],  # Cats can match with dogs for general pet recognition
-                        'dog': ['dog', 'cat', 'pet', 'animal'],  # Dogs can match with cats for general pet recognition
-                        'horse': ['horse', 'pet', 'animal'],
-                        'cow': ['cow', 'pet', 'animal'],
-                        'sheep': ['sheep', 'pet', 'animal']
-                    }
+#                     compatible_types = {
+#                         'cat': ['cat', 'dog', 'pet', 'animal'],  # Cats can match with dogs for general pet recognition
+#                         'dog': ['dog', 'cat', 'pet', 'animal'],  # Dogs can match with cats for general pet recognition
+#                         'horse': ['horse', 'pet', 'animal'],
+#                         'cow': ['cow', 'pet', 'animal'],
+#                         'sheep': ['sheep', 'pet', 'animal']
+#                     }
                     
                     # Check if types are compatible
-                    animal_type_match = (
-                        query_type == stored_type or  # Exact match
-                        stored_type in compatible_types.get(query_type, []) or  # Compatible types
-                        query_type in compatible_types.get(stored_type, []) or  # Reverse compatibility
-                        stored_type in ['pet', 'animal', 'unknown']  # Generic types
-                    )
+#                     animal_type_match = (
+#                         query_type == stored_type or  # Exact match
+#                         stored_type in compatible_types.get(query_type, []) or  # Compatible types
+#                         query_type in compatible_types.get(stored_type, []) or  # Reverse compatibility
+#                         stored_type in ['pet', 'animal', 'unknown']  # Generic types
+#                     )
                     
-                    has_muzzle_features = 'muzzle_features' in query_animal
+#                     has_muzzle_features = 'muzzle_features' in query_animal
                     
-                    print(f"   Query type: {query_type}, Stored type: {stored_type}")
-                    print(f"   Animal type compatible: {'✅ YES' if animal_type_match else '❌ NO'}")
-                    print(f"   Has muzzle features: {'✅ YES' if has_muzzle_features else '❌ NO'}")
+#                     print(f"   Query type: {query_type}, Stored type: {stored_type}")
+#                     print(f"   Animal type compatible: {'✅ YES' if animal_type_match else '❌ NO'}")
+#                     print(f"   Has muzzle features: {'✅ YES' if has_muzzle_features else '❌ NO'}")
                     
-                    if animal_type_match and has_muzzle_features:
-                        print(f"   ✅ Proceeding with feature comparison...")
+#                     if animal_type_match and has_muzzle_features:
+#                         print(f"   ✅ Proceeding with feature comparison...")
                         
                         # Compare with stored animals - now both are in the same flattened format
-                        for stored_animal in stored_muzzle_features:
-                            if stored_animal:
-                                print(f"   🔍 Comparing features for: {stored_pet.get('name', 'Unknown')}")
+#                         for stored_animal in stored_muzzle_features:
+#                             if stored_animal:
+#                                 print(f"   🔍 Comparing features for: {stored_pet.get('name', 'Unknown')}")
                                 
                                 # Log feature structure comparison
-                                query_features = query_animal['muzzle_features'] if 'muzzle_features' in query_animal else query_animal
+#                                 query_features = query_animal['muzzle_features'] if 'muzzle_features' in query_animal else query_animal
                                 
                                 # Extract stored features - handle nested structure from Flutter
-                                if isinstance(stored_animal, dict):
-                                    if 'muzzle_features' in stored_animal:
-                                        stored_features = stored_animal['muzzle_features']
-                                        print(f"   ✅ Extracted nested muzzle_features from stored_animal")
-                                    else:
+#                                 if isinstance(stored_animal, dict):
+#                                     if 'muzzle_features' in stored_animal:
+#                                         stored_features = stored_animal['muzzle_features']
+#                                         print(f"   ✅ Extracted nested muzzle_features from stored_animal")
+#                                     else:
                                         # If no nested key, assume stored_animal IS the features
-                                        stored_features = stored_animal
-                                        print(f"   ⚠️ No nested muzzle_features key, using stored_animal directly")
-                                else:
-                                    stored_features = stored_animal
-                                    print(f"   ⚠️ stored_animal is not a dict, using as-is")
+#                                         stored_features = stored_animal
+#                                         print(f"   ⚠️ No nested muzzle_features key, using stored_animal directly")
+#                                 else:
+#                                     stored_features = stored_animal
+#                                     print(f"   ⚠️ stored_animal is not a dict, using as-is")
                                 
-                                print(f"   Query features keys: {list(query_features.keys()) if isinstance(query_features, dict) else 'Not a dict'}")
-                                print(f"   Stored features keys: {list(stored_features.keys()) if isinstance(stored_features, dict) else 'Not a dict'}")
+#                                 print(f"   Query features keys: {list(query_features.keys()) if isinstance(query_features, dict) else 'Not a dict'}")
+#                                 print(f"   Stored features keys: {list(stored_features.keys()) if isinstance(stored_features, dict) else 'Not a dict'}")
                                 
                                 # Debug: Check if features have the expected structure
-                                if isinstance(stored_features, dict):
-                                    has_traditional = 'traditional_features' in stored_features
-                                    has_sift = 'sift_features' in stored_features
-                                    has_dogfacenet = 'dogfacenet_embeddings' in stored_features
-                                    print(f"   Feature availability - Traditional: {has_traditional}, SIFT: {has_sift}, DogFaceNet: {has_dogfacenet}")
+#                                 if isinstance(stored_features, dict):
+#                                     has_traditional = 'traditional_features' in stored_features
+#                                     has_sift = 'sift_features' in stored_features
+#                                     has_dogfacenet = 'dogfacenet_embeddings' in stored_features
+#                                     print(f"   Feature availability - Traditional: {has_traditional}, SIFT: {has_sift}, DogFaceNet: {has_dogfacenet}")
                                 
                                 # Debug: Check DogFaceNet preservation before comparison
-                                debug_dogfacenet_preservation([{'muzzle_features': stored_features}], "stored_from_db")
-                                debug_dogfacenet_preservation([{'muzzle_features': query_features}], "query_converted")
+#                                 debug_dogfacenet_preservation([{'muzzle_features': stored_features}], "stored_from_db")
+#                                 debug_dogfacenet_preservation([{'muzzle_features': query_features}], "query_converted")
                                 
-                                print(f"   🚀 PROCEEDING WITH DOGFACENET-ENHANCED COMPARISON!")
-                                print(f"   " + "=" * 50)
+#                                 print(f"   🚀 PROCEEDING WITH DOGFACENET-ENHANCED COMPARISON!")
+#                                 print(f"   " + "=" * 50)
                                 
                                 # Use the DogFaceNet-enhanced feature comparison
-                                similarity, is_match = calculate_flattened_similarity_with_dogfacenet(
-                                    query_features,
-                                    stored_features
-                                )
+#                                 similarity, is_match = calculate_flattened_similarity_with_dogfacenet(
+#                                     query_features,
+#                                     stored_features
+#                                 )
 
-                                print(f"   Similarity score: {similarity:.4f}, Match: {is_match}")
+#                                 print(f"   Similarity score: {similarity:.4f}, Match: {is_match}")
                                 
                                 # Show feature usage summary
-                                print(f"   📊 FEATURE USAGE SUMMARY:")
-                                if 'dogfacenet_embeddings' in query_features and 'dogfacenet_embeddings' in stored_features:
-                                    print(f"      🐕 DogFaceNet: ✅ Used (128-dim embeddings)")
-                                else:
-                                    print(f"      🐕 DogFaceNet: ❌ Not available")
+#                                 print(f"   📊 FEATURE USAGE SUMMARY:")
+#                                 if 'dogfacenet_embeddings' in query_features and 'dogfacenet_embeddings' in stored_features:
+#                                     print(f"      🐕 DogFaceNet: ✅ Used (128-dim embeddings)")
+#                                 else:
+#                                     print(f"      🐕 DogFaceNet: ❌ Not available")
                                 
-                                if 'sift_features' in query_features and 'sift_features' in stored_features:
-                                    print(f"      🔍 SIFT: ✅ Used (keypoint matching)")
-                                else:
-                                    print(f"      🔍 SIFT: ❌ Not available")
+#                                 if 'sift_features' in query_features and 'sift_features' in stored_features:
+#                                     print(f"      🔍 SIFT: ✅ Used (keypoint matching)")
+#                                 else:
+#                                     print(f"      🔍 SIFT: ❌ Not available")
                                 
-                                if 'traditional_features' in query_features and 'traditional_features' in stored_features:
-                                    print(f"      📏 Traditional: ✅ Used (texture/LBP features)")
-                                else:
-                                    print(f"      📏 Traditional: ❌ Not available")
+#                                 if 'traditional_features' in query_features and 'traditional_features' in stored_features:
+#                                     print(f"      📏 Traditional: ✅ Used (texture/LBP features)")
+#                                 else:
+#                                     print(f"      📏 Traditional: ❌ Not available")
 
-                                if is_match:
-                                    print(f"   🎉 MATCH FOUND!")
-                                    matches.append({
-                                        'pet_id': stored_pet_doc.id,
-                                        'pet_name': stored_pet.get('name', 'Unknown'),
-                                        'breed': stored_pet.get('breed', 'Unknown'),
-                                        'owner': stored_pet.get('owner', 'Unknown'),
-                                        'owner_name': stored_pet.get('owner_name', 'Unknown'),
-                                        'owner_email': stored_pet.get('owner_email', 'Unknown'),
-                                        'owner_phone': stored_pet.get('owner_phone', 'Unknown'),
-                                        'similarity_score': round(similarity, 4),
-                                        'animal_type': query_animal['animal_type'],
-                                        'confidence': query_animal['confidence']
-                                    })
-                                else:
-                                    print(f"   ❌ No match (similarity too low)")
-                            else:
-                                print(f"   ❌ Stored animal is empty or None")
-                    else:
-                        print(f"   ❌ Skipping comparison (type mismatch or no features)")
+#                                 if is_match:
+#                                     print(f"   🎉 MATCH FOUND!")
+#                                     matches.append({
+#                                         'pet_id': stored_pet_doc.id,
+#                                         'pet_name': stored_pet.get('name', 'Unknown'),
+#                                         'breed': stored_pet.get('breed', 'Unknown'),
+#                                         'owner': stored_pet.get('owner', 'Unknown'),
+#                                         'owner_name': stored_pet.get('owner_name', 'Unknown'),
+#                                         'owner_email': stored_pet.get('owner_email', 'Unknown'),
+#                                         'owner_phone': stored_pet.get('owner_phone', 'Unknown'),
+#                                         'similarity_score': round(similarity, 4),
+#                                         'animal_type': query_animal['animal_type'],
+#                                         'confidence': query_animal['confidence']
+#                                     })
+#                                 else:
+#                                     print(f"   ❌ No match (similarity too low)")
+#                             else:
+#                                 print(f"   ❌ Stored animal is empty or None")
+#                     else:
+#                         print(f"   ❌ Skipping comparison (type mismatch or no features)")
 
-        except Exception as e:
-            print(f"❌ Database query error: {e}")
-            import traceback
-            traceback.print_exc()
-            return jsonify({"message": "Error querying database"}), 500
+#         except Exception as e:
+#             print(f"❌ Database query error: {e}")
+#             import traceback
+#             traceback.print_exc()
+#             return jsonify({"message": "Error querying database"}), 500
 
-        print(f"\n📊 FINAL RESULTS:")
-        print("-" * 30)
-        print(f"Total pets in database: {pet_count}")
-        print(f"Matches found: {len(matches)}")
+#         print(f"\n📊 FINAL RESULTS:")
+#         print("-" * 30)
+#         print(f"Total pets in database: {pet_count}")
+#         print(f"Matches found: {len(matches)}")
         
-        if matches:
-            print(f"\n🎯 MATCHES DETAILS:")
-            print("-" * 25)
+#         if matches:
+#             print(f"\n🎯 MATCHES DETAILS:")
+#             print("-" * 25)
             # Debug: Show match details
-            for i, match in enumerate(matches):
-                print(f"Match {i+1}: {match['pet_name']} (similarity: {match['similarity_score']:.4f})")
-                print(f"   Pet ID: {match['pet_id']}")
-                print(f"   Breed: {match['breed']}")
-                print(f"   Owner: {match['owner_name']}")
-                print(f"   Animal Type: {match['animal_type']}")
-        else:
-            print(f"\n❌ NO MATCHES FOUND")
-            print("Possible reasons:")
-            print("   - No pets in database with matching animal type")
-            print("   - Feature extraction failed")
-            print("   - Data structure mismatch")
-            print("   - Similarity threshold too high")
+#             for i, match in enumerate(matches):
+#                 print(f"Match {i+1}: {match['pet_name']} (similarity: {match['similarity_score']:.4f})")
+#                 print(f"   Pet ID: {match['pet_id']}")
+#                 print(f"   Breed: {match['breed']}")
+#                 print(f"   Owner: {match['owner_name']}")
+#                 print(f"   Animal Type: {match['animal_type']}")
+#         else:
+#             print(f"\n❌ NO MATCHES FOUND")
+#             print("Possible reasons:")
+#             print("   - No pets in database with matching animal type")
+#             print("   - Feature extraction failed")
+#             print("   - Data structure mismatch")
+#             print("   - Similarity threshold too high")
 
         # Sort by similarity
-        matches.sort(key=lambda x: x['similarity_score'], reverse=True)
+#         matches.sort(key=lambda x: x['similarity_score'], reverse=True)
 
-        print(f"\n🚀 Returning response...")
-        return jsonify({
-            "message": "Pet identification completed",
-            "query_animals_detected": len(query_animal_data),
-            "matches_found": len(matches),
-            "matches": matches[:5]  # Return top 5 matches
-        }), 200
+#         print(f"\n🚀 Returning response...")
+#         return jsonify({
+#             "message": "Pet identification completed",
+#             "query_animals_detected": len(query_animal_data),
+#             "matches_found": len(matches),
+#             "matches": matches[:5]  # Return top 5 matches
+#         }), 200
 
-    except Exception as e:
-        print(f"Error in identify_pet: {e}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({"message": f"Error: {e}"}), 500
+#     except Exception as e:
+#         print(f"Error in identify_pet: {e}")
+#         import traceback
+#         traceback.print_exc()
+#         return jsonify({"message": f"Error: {e}"}), 500
 
 
 # Enhanced Feature Extractor with DogFaceNet Integration
