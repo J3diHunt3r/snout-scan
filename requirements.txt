@@ -1,11 +1,9 @@
-# Minimal requirements for deployment - absolute minimum
-# These packages all have pre-built wheels and should install quickly
-
-flask==3.0.0
-flask-cors==4.0.0
-gunicorn==21.2.0
-requests==2.31.0
-python-dotenv==1.0.0
-firebase-admin==6.2.0
-stripe==7.0.0
-Pillow==10.1.0
+# Minimal requirements - using latest stable versions with pre-built wheels
+flask==3.0.3
+flask-cors==4.0.1
+gunicorn==22.0.0
+requests==2.32.3
+python-dotenv==1.0.1
+firebase-admin==6.5.0
+stripe==11.0.0
+Pillow==10.4.0
