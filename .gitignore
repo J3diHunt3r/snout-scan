@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Environment variables
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large ML Model Files - Don't commit these to GitHub
+# Instead, download them during deployment or host on cloud storage
+models/*.tar.gz
+models/**/*.pb
+models/**/*.ckpt.*
+models/**/saved_model/
+yolov5s.pt
+
+# Firebase credentials (should be in environment variables in production)
+firebase-credentials.json
+
+# Uploads and temporary files
+uploads/*
+!uploads/.gitkeep
+
+# Comparison files (optional - can exclude if large)
+comparisons/*.PNG
+comparisons/*.jpg
+comparisons/*.pkl
+human/*.PNG
+human/*.jpg
+snout_data/*.jpg
+snout_data/*.json
+
+# Logs
+*.log

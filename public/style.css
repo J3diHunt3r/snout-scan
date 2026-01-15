@@ -1,0 +1,128 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #fafafa;
+  margin: 0;
+  padding: 20px;
+}
+
+section {
+  max-width: 500px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 8px;
+  padding: 40px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.product {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.product svg {
+  width: 40px;
+  height: 40px;
+  margin-right: 16px;
+}
+
+.description {
+  flex: 1;
+}
+
+.description h3 {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.description h5 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 500;
+  color: #666;
+}
+
+.description p {
+  margin: 8px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.description ul {
+  margin: 8px 0;
+  padding-left: 20px;
+  color: #666;
+  font-size: 14px;
+}
+
+.description li {
+  margin: 4px 0;
+}
+
+button {
+  width: 100%;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 14px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+button:active {
+  background-color: #3d8b40;
+}
+
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+a {
+  color: #4CAF50;
+  text-decoration: none;
+  display: inline-block;
+  margin-top: 16px;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.Box-root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.Box-root h3 {
+  margin: 16px 0 8px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.Box-root p {
+  margin: 8px 0;
+  color: #666;
+  font-size: 16px;
+}
+
