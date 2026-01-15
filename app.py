@@ -2407,25 +2407,25 @@ def process_image(file_path):
         #     
         # except Exception as pil_error:
         #     print(f"PIL processing failed: {pil_error}")
-            
-            # Last resort: try to read the file as bytes and decode
-            try:
-                with open(file_path, 'rb') as f:
-                    file_bytes = f.read()
-                    print(f"Read {len(file_bytes)} bytes from file")
-                    
-                    # Try to decode with OpenCV from memory
-                    nparr = np.frombuffer(file_bytes, np.uint8)
-                    cv_image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-                    
-                    if cv_image is not None:
-                        print(f"OpenCV decode from bytes successful, shape: {cv_image.shape}")
-                        return cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
-                    else:
-                        print("OpenCV decode from bytes failed")
-                        
-            except Exception as bytes_error:
-                print(f"Bytes processing failed: {bytes_error}")
+        
+        # Last resort: try to read the file as bytes and decode (commented out - not needed without pet features)
+        # try:
+        #     with open(file_path, 'rb') as f:
+        #         file_bytes = f.read()
+        #         print(f"Read {len(file_bytes)} bytes from file")
+        #         
+        #         # Try to decode with OpenCV from memory
+        #         nparr = np.frombuffer(file_bytes, np.uint8)
+        #         cv_image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        #         
+        #         if cv_image is not None:
+        #             print(f"OpenCV decode from bytes successful, shape: {cv_image.shape}")
+        #             return cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
+        #         else:
+        #             print("OpenCV decode from bytes failed")
+        #             
+        # except Exception as bytes_error:
+        #     print(f"Bytes processing failed: {bytes_error}")
         
         print("All image processing methods failed")
         return None
