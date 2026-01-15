@@ -2385,28 +2385,28 @@ def process_image(file_path):
         # Fallback to PIL if OpenCV fails (commented out - not needed without pet features)
         # try:
         #     image = Image.open(file_path)
-            print(f"PIL image opened successfully, size: {image.size}")
-            
-            # Convert PIL to OpenCV format
-            if image.mode != 'RGB':
-                image = image.convert('RGB')
-            
-            # Convert PIL to numpy array
-            img_array = np.array(image)
-            print(f"Converted to numpy array, shape: {img_array.shape}")
-            
-            # Convert RGB to BGR for OpenCV
-            img_bgr = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
-            print(f"Converted to BGR, shape: {img_bgr.shape}")
-            
-            # Now convert back to RGB for our processing
-            img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
-            print(f"Final RGB image, shape: {img_rgb.shape}")
-            
-            return img_rgb
-            
-        except Exception as pil_error:
-            print(f"PIL processing failed: {pil_error}")
+        #     print(f"PIL image opened successfully, size: {image.size}")
+        #     
+        #     # Convert PIL to OpenCV format
+        #     if image.mode != 'RGB':
+        #         image = image.convert('RGB')
+        #     
+        #     # Convert PIL to numpy array
+        #     img_array = np.array(image)
+        #     print(f"Converted to numpy array, shape: {img_array.shape}")
+        #     
+        #     # Convert RGB to BGR for OpenCV
+        #     img_bgr = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
+        #     print(f"Converted to BGR, shape: {img_bgr.shape}")
+        #     
+        #     # Now convert back to RGB for our processing
+        #     img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+        #     print(f"Final RGB image, shape: {img_rgb.shape}")
+        #     
+        #     return img_rgb
+        #     
+        # except Exception as pil_error:
+        #     print(f"PIL processing failed: {pil_error}")
             
             # Last resort: try to read the file as bytes and decode
             try:
