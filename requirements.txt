@@ -1,23 +1,24 @@
-# Core Flask and web dependencies
+# Minimal requirements for deployment - core functionality only
+# Add ML/image processing packages later if needed
+
+# Core Flask and web
 flask==3.0.0
 flask-cors==4.0.0
 gunicorn==21.2.0
 requests==2.31.0
 python-dotenv==1.0.0
 
-# Firebase
+# Firebase Admin (core only)
 firebase-admin==6.2.0
-google-cloud-firestore==2.11.1
-google-auth==2.23.4
-google-cloud-storage==2.10.0
 
 # Stripe
 stripe==7.0.0
 
-# Image processing (minimal - try without OpenCV first)
+# Basic image processing
 Pillow==10.1.0
 
-# Note: Removed numpy and opencv-python to avoid build issues
-# These can be added back later if needed
-# numpy==1.24.3
-# opencv-python==4.8.1.78
+# Note: Temporarily removed these to avoid build issues:
+# - google-cloud-firestore (may be redundant with firebase-admin)
+# - google-cloud-storage (can use firebase-admin storage)
+# - google-auth (included in firebase-admin)
+# - numpy, opencv-python (will break some features but allows deployment)

@@ -34,7 +34,15 @@ except ImportError:
 import base64
 import firebase_admin
 from firebase_admin import credentials, firestore
-from google.cloud import firestore as google_firestore
+
+# Optional google.cloud import (may not be needed if firebase_admin handles it)
+try:
+    from google.cloud import firestore as google_firestore
+    GOOGLE_CLOUD_FIRESTORE_AVAILABLE = True
+except ImportError:
+    print("⚠️ google.cloud.firestore not available - using firebase_admin only")
+    GOOGLE_CLOUD_FIRESTORE_AVAILABLE = False
+    google_firestore = None
 
 # Optional ML imports
 try:
