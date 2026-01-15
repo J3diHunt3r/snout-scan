@@ -38,23 +38,34 @@ if FIREBASE_ADMIN_AVAILABLE:
         print("Firebase app already initialized")
     except ValueError:
         try:
-            if os.path.exists('firebase-credentials.json'):
-                print("Using firebase-credentials.json")
+            # Try to get Firebase credentials from environment variable first
+            firebase_creds_json = os.getenv('FIREBASE_CREDENTIALS_JSON')
+            if firebase_creds_json:
+                print("Using Firebase credentials from environment variable")
+                cred_dict = json.loads(firebase_creds_json)
+                cred = credentials.Certificate(cred_dict)
+                firebase_admin.initialize_app(cred)
+            elif os.path.exists('firebase-credentials.json'):
+                print("Using firebase-credentials.json file")
                 cred = credentials.Certificate('firebase-credentials.json')
                 firebase_admin.initialize_app(cred)
             else:
-                print("No credentials file found, trying default credentials")
-                firebase_admin.initialize_app()
+                print("⚠️ No Firebase credentials found (neither FIREBASE_CREDENTIALS_JSON env var nor firebase-credentials.json file)")
+                print("   Stripe webhooks will not be able to update user subscriptions")
+                # Don't initialize Firebase if no credentials
+                firebase_admin = None
         except Exception as e:
             print(f"Firebase initialization error: {e}")
+            print("   Stripe webhooks will not be able to update user subscriptions")
             db = None
         else:
-            try:
-                db = firestore.client()
-                print("Firebase Firestore client initialized successfully")
-            except Exception as e:
-                print(f"Firestore client error: {e}")
-                db = None
+            if firebase_admin:
+                try:
+                    db = firestore.client()
+                    print("Firebase Firestore client initialized successfully")
+                except Exception as e:
+                    print(f"Firestore client error: {e}")
+                    db = None
 else:
     print("⚠️ Firebase Admin SDK not available - Stripe webhooks will not update user subscriptions")
 
