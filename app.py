@@ -12,7 +12,6 @@ except ImportError:
 
 from flask import Flask, jsonify, request
 from PIL import Image, ExifTags
-import torch
 import numpy as np
 import cv2
 import uuid
@@ -20,8 +19,25 @@ import base64
 import firebase_admin
 from firebase_admin import credentials, firestore
 from google.cloud import firestore as google_firestore
-from sklearn.preprocessing import normalize
-from sklearn.metrics.pairwise import cosine_similarity
+
+# Optional ML imports
+try:
+    import torch
+    TORCH_AVAILABLE = True
+except ImportError:
+    print("⚠️ PyTorch not available - some ML features will be disabled")
+    TORCH_AVAILABLE = False
+    torch = None
+
+try:
+    from sklearn.preprocessing import normalize
+    from sklearn.metrics.pairwise import cosine_similarity
+    SKLEARN_AVAILABLE = True
+except ImportError:
+    print("⚠️ scikit-learn not available - some ML features will be disabled")
+    SKLEARN_AVAILABLE = False
+    normalize = lambda x: x  # Dummy function
+    cosine_similarity = None
 
 # Optional dlib import (requires C++ compilation, may not be available)
 try:
@@ -39,7 +55,7 @@ import stripe
 from datetime import datetime, timedelta
 from flask_cors import CORS
 
-# Machine Learning Enhancements - DogFaceNet Integration
+# Machine Learning Enhancements - DogFaceNet Integration (Optional)
 try:
     import tensorflow as tf
     from tensorflow.keras.models import load_model
@@ -53,6 +69,7 @@ except ImportError as e:
     print(f"⚠️ TensorFlow not available: {e}")
     print("   DogFaceNet features will be disabled")
     TENSORFLOW_AVAILABLE = False
+    tf = None
 
 # Initialize the Flask app
 app = Flask(__name__,

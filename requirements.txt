@@ -14,25 +14,18 @@ google-cloud-storage==2.10.0
 # Stripe
 stripe==7.0.0
 
-# Image processing
+# Image processing (essential only)
 Pillow==10.1.0
-opencv-python==4.8.1.78
 numpy==1.24.3
 
-# Machine Learning - Core packages
-tensorflow==2.15.0
-keras==2.15.0
+# OpenCV (for basic image processing)
+opencv-python==4.8.1.78
 
-# PyTorch (CPU version)
-torch==2.1.0
-torchvision==0.16.0
-
-# Other ML dependencies
-scikit-learn==1.3.2
-ultralytics==8.0.206
-
-# Note: dlib and face-recognition require C++ compilation
-# They may fail on some platforms - app handles this gracefully
-# If build fails, these can be installed separately or made optional
-# dlib==19.24.2
-# face-recognition==1.3.0
+# ML packages (comment out if build fails - can add later)
+# These require significant build resources:
+# tensorflow==2.15.0
+# keras==2.15.0
+# torch==2.1.0
+# torchvision==0.16.0
+# scikit-learn==1.3.2
+# ultralytics==8.0.206
