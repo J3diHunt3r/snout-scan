@@ -2252,9 +2252,8 @@ def detect_animals_fallback(image):
             # Fallback to OpenCV face detector
             face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
             faces_cv = face_cascade.detectMultiScale(gray_image, scaleFactor=1.1, minNeighbors=5)
-            # Convert OpenCV format to dlib-like format for compatibility
-            faces = [dlib.rectangle(int(x), int(y), int(x+w), int(y+h)) if DLIB_AVAILABLE 
-                    else (x, y, x+w, y+h) for (x, y, w, h) in faces_cv]
+            # Convert OpenCV format to tuple format (x, y, x+w, y+h) for compatibility
+            faces = [(int(x), int(y), int(x+w), int(y+h)) for (x, y, w, h) in faces_cv]
         
         print(f"Fallback detection found {len(faces)} potential animal faces")
         
