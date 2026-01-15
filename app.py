@@ -19,6 +19,7 @@ import warnings
 from dotenv import load_dotenv
 import stripe
 from datetime import datetime, timedelta
+from flask_cors import CORS
 
 # Machine Learning Enhancements - DogFaceNet Integration
 try:
@@ -39,6 +40,9 @@ except ImportError as e:
 app = Flask(__name__,
             static_url_path='',
             static_folder='public')
+
+# Enable CORS for all routes (allows Flutter app to make requests)
+CORS(app)
 
 # Suppress warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
