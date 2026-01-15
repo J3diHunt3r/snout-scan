@@ -12,9 +12,25 @@ except ImportError:
 
 from flask import Flask, jsonify, request
 from PIL import Image, ExifTags
-import numpy as np
-import cv2
 import uuid
+
+# Optional numpy import
+try:
+    import numpy as np
+    NUMPY_AVAILABLE = True
+except ImportError:
+    print("⚠️ NumPy not available - some features will be disabled")
+    NUMPY_AVAILABLE = False
+    np = None
+
+# Optional OpenCV import
+try:
+    import cv2
+    OPENCV_AVAILABLE = True
+except ImportError:
+    print("⚠️ OpenCV not available - image processing features will be limited")
+    OPENCV_AVAILABLE = False
+    cv2 = None
 import base64
 import firebase_admin
 from firebase_admin import credentials, firestore
