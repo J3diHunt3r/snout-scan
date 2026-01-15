@@ -93,6 +93,39 @@ os.makedirs('uploads', exist_ok=True)
 os.makedirs('snout_data', exist_ok=True)
 
 # ============================================================================
+# HEALTH CHECK AND ROOT ROUTE
+# ============================================================================
+
+@app.route('/', methods=['GET'])
+def health_check():
+    """Health check endpoint"""
+    return jsonify({
+        'status': 'ok',
+        'service': 'Snout Scout Backend',
+        'endpoints': {
+            'stripe': {
+                'create_checkout': '/create-checkout-session (POST)',
+                'create_portal': '/create-portal-session (POST)',
+                'webhook': '/stripe-webhook (POST)',
+                'payment_intent': '/create-payment-intent (POST)',
+            },
+            'subscription': '/subscription/<user_id> (GET)',
+            'static': {
+                'checkout': '/checkout.html',
+                'success': '/success.html',
+                'cancel': '/cancel.html',
+            }
+        },
+        'firebase': 'available' if db is not None else 'not initialized',
+        'stripe': 'configured' if stripe.api_key else 'not configured'
+    }), 200
+
+@app.route('/health', methods=['GET'])
+def health():
+    """Simple health check"""
+    return jsonify({'status': 'ok'}), 200
+
+# ============================================================================
 # STRIPE PAYMENT ENDPOINTS
 # ============================================================================
 
