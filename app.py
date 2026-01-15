@@ -1,6 +1,15 @@
 import os
 import json
-import face_recognition
+
+# Optional imports for face recognition (may not be available on all platforms)
+try:
+    import face_recognition
+    FACE_RECOGNITION_AVAILABLE = True
+except ImportError:
+    print("⚠️ face_recognition not available - some features will be disabled")
+    FACE_RECOGNITION_AVAILABLE = False
+    face_recognition = None
+
 from flask import Flask, jsonify, request
 from PIL import Image, ExifTags
 import torch
@@ -13,7 +22,16 @@ from firebase_admin import credentials, firestore
 from google.cloud import firestore as google_firestore
 from sklearn.preprocessing import normalize
 from sklearn.metrics.pairwise import cosine_similarity
-import dlib
+
+# Optional dlib import (requires C++ compilation, may not be available)
+try:
+    import dlib
+    DLIB_AVAILABLE = True
+except ImportError:
+    print("⚠️ dlib not available - using OpenCV for face detection instead")
+    DLIB_AVAILABLE = False
+    dlib = None
+
 from scipy.spatial.distance import euclidean
 import warnings
 from dotenv import load_dotenv
@@ -125,7 +143,10 @@ except Exception as e:
 
 class ImprovedMuzzleFeatureExtractor:
     def __init__(self):
-        self.detector = dlib.get_frontal_face_detector()
+        if DLIB_AVAILABLE:
+            self.detector = dlib.get_frontal_face_detector()
+        else:
+            self.detector = None  # Will use OpenCV fallback
 
     def extract_muzzle_region(self, image, animal_box):
         """Extract a more focused muzzle/nose region"""
@@ -2223,9 +2244,17 @@ def detect_animals_fallback(image):
         else:
             gray_image = image
         
-        # Use dlib face detector (works well for animal faces too)
-        detector = dlib.get_frontal_face_detector()
-        faces = detector(gray_image, 1)  # Upsample once for better detection
+        # Use dlib face detector (works well for animal faces too) or OpenCV fallback
+        if DLIB_AVAILABLE:
+            detector = dlib.get_frontal_face_detector()
+            faces = detector(gray_image, 1)  # Upsample once for better detection
+        else:
+            # Fallback to OpenCV face detector
+            face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+            faces_cv = face_cascade.detectMultiScale(gray_image, scaleFactor=1.1, minNeighbors=5)
+            # Convert OpenCV format to dlib-like format for compatibility
+            faces = [dlib.rectangle(int(x), int(y), int(x+w), int(y+h)) if DLIB_AVAILABLE 
+                    else (x, y, x+w, y+h) for (x, y, w, h) in faces_cv]
         
         print(f"Fallback detection found {len(faces)} potential animal faces")
         
