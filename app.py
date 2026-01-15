@@ -11,7 +11,7 @@ except ImportError:
     face_recognition = None
 
 from flask import Flask, jsonify, request
-from PIL import Image, ExifTags
+# from PIL import Image, ExifTags  # Commented out - only needed for pet features
 import uuid
 
 # Optional numpy import
@@ -2382,9 +2382,9 @@ def process_image(file_path):
         
         print("Direct OpenCV read failed, trying PIL approach...")
         
-        # Fallback to PIL if OpenCV fails
-        try:
-            image = Image.open(file_path)
+        # Fallback to PIL if OpenCV fails (commented out - not needed without pet features)
+        # try:
+        #     image = Image.open(file_path)
             print(f"PIL image opened successfully, size: {image.size}")
             
             # Convert PIL to OpenCV format

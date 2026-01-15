@@ -1,4 +1,6 @@
-# Minimal requirements - core packages only
+# Minimal requirements for Stripe billing only
 flask==2.3.3
 gunicorn==21.2.0
-Pillow==10.1.0
+
+# Note: Pillow removed - not needed for Stripe functionality
+# All pet/image processing routes are commented out
