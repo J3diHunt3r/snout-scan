@@ -81,7 +81,15 @@ except ImportError:
     DLIB_AVAILABLE = False
     dlib = None
 
-from scipy.spatial.distance import euclidean
+# Optional scipy import (only needed for ML features)
+try:
+    from scipy.spatial.distance import euclidean
+    SCIPY_AVAILABLE = True
+except ImportError:
+    print("⚠️ scipy not available - some ML features will be disabled")
+    SCIPY_AVAILABLE = False
+    euclidean = None
+
 import warnings
 from dotenv import load_dotenv
 import stripe
@@ -143,17 +151,21 @@ if FIREBASE_ADMIN_AVAILABLE:
 else:
     print("⚠️ Firebase Admin SDK not available - Stripe webhooks will not update user subscriptions")
 
-# Load models
-try:
-    # Try to use a more recent YOLOv5 loading approach
-    model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True, trust_repo=True)
-    model.conf = 0.1  # Lower confidence threshold for better detection
-    model.iou = 0.45  # Set IoU threshold for NMS
-    print("YOLOv5 model loaded successfully")
-except Exception as e:
-    print(f"Error loading YOLOv5 model: {e}")
-    # Fallback to basic model
-    model = None
+# Load models (only needed for pet/image processing features, which are commented out)
+model = None
+if TORCH_AVAILABLE and torch is not None:
+    try:
+        # Try to use a more recent YOLOv5 loading approach
+        model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True, trust_repo=True)
+        model.conf = 0.1  # Lower confidence threshold for better detection
+        model.iou = 0.45  # Set IoU threshold for NMS
+        print("YOLOv5 model loaded successfully")
+    except Exception as e:
+        print(f"Error loading YOLOv5 model: {e}")
+        # Fallback to basic model
+        model = None
+else:
+    print("⚠️ PyTorch not available - YOLOv5 model not loaded (not needed for Stripe functionality)")
 
 # Create directories
 os.makedirs('uploads', exist_ok=True)
