@@ -32,8 +32,17 @@ except ImportError:
     OPENCV_AVAILABLE = False
     cv2 = None
 import base64
-import firebase_admin
-from firebase_admin import credentials, firestore
+# Firebase Admin SDK - needed for Stripe webhooks to update user subscriptions
+try:
+    import firebase_admin
+    from firebase_admin import credentials, firestore
+    FIREBASE_ADMIN_AVAILABLE = True
+except ImportError:
+    print("⚠️ firebase_admin not available - Stripe webhooks will not be able to update user subscriptions")
+    FIREBASE_ADMIN_AVAILABLE = False
+    firebase_admin = None
+    credentials = None
+    firestore = None
 
 # Optional google.cloud import (may not be needed if firebase_admin handles it)
 try:
@@ -108,28 +117,31 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 
 # Initialize Firebase Admin SDK
 db = None
-try:
-    firebase_admin.get_app()
-    print("Firebase app already initialized")
-except ValueError:
+if FIREBASE_ADMIN_AVAILABLE:
     try:
-        if os.path.exists('firebase-credentials.json'):
-            print("Using firebase-credentials.json")
-            cred = credentials.Certificate('firebase-credentials.json')
-            firebase_admin.initialize_app(cred)
-        else:
-            print("No credentials file found, trying default credentials")
-            firebase_admin.initialize_app()
-    except Exception as e:
-        print(f"Firebase initialization error: {e}")
-        db = None
-    else:
+        firebase_admin.get_app()
+        print("Firebase app already initialized")
+    except ValueError:
         try:
-            db = firestore.client()
-            print("Firebase Firestore client initialized successfully")
+            if os.path.exists('firebase-credentials.json'):
+                print("Using firebase-credentials.json")
+                cred = credentials.Certificate('firebase-credentials.json')
+                firebase_admin.initialize_app(cred)
+            else:
+                print("No credentials file found, trying default credentials")
+                firebase_admin.initialize_app()
         except Exception as e:
-            print(f"Firestore client error: {e}")
+            print(f"Firebase initialization error: {e}")
             db = None
+        else:
+            try:
+                db = firestore.client()
+                print("Firebase Firestore client initialized successfully")
+            except Exception as e:
+                print(f"Firestore client error: {e}")
+                db = None
+else:
+    print("⚠️ Firebase Admin SDK not available - Stripe webhooks will not update user subscriptions")
 
 # Load models
 try:
