@@ -1,0 +1,25 @@
+# Minimal requirements for basic functionality (Stripe, Firebase, Flask)
+# Use this if full ML dependencies cause build issues
+
+# Core Flask and web dependencies
+flask==3.0.0
+flask-cors==4.0.0
+gunicorn==21.2.0
+requests==2.31.0
+python-dotenv==1.0.0
+
+# Firebase
+firebase-admin==6.2.0
+google-cloud-firestore==2.11.1
+google-auth==2.23.4
+google-cloud-storage==2.10.0
+
+# Stripe
+stripe==7.0.0
+
+# Image processing (basic)
+Pillow==10.1.0
+numpy==1.24.3
+
+# Note: ML features (TensorFlow, PyTorch, face-recognition) are excluded
+# Add these later if needed or use cloud storage for model inference
